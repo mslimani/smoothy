@@ -49,8 +49,8 @@ buildscript {
 apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
-  compile 'fr.mslimani:smoothy:1.0.0'
-  apt 'fr.mslimani:smoothy-compiler:1.0.0'
+  compile 'com.github.mslimani:smoothy:1.0.0'
+  apt 'com.github.mslimani:smoothy-compiler:1.0.0'
 }
 ```
 

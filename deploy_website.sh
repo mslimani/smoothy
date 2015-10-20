@@ -3,7 +3,7 @@
 set -ex
 
 REPO="git@github.com:mslimani/smoothy.git"
-GROUP_ID="mslimani"
+GROUP_ID="com.github.mslimani"
 ARTIFACT_ID="smoothy"
 
 DIR=temp-clone
