@@ -17,7 +17,7 @@ android {
 
 dependencies {
     compile project(':smoothy-annotations')
-    provided deps.androidCompat
+    provided deps.androidSupportV4
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

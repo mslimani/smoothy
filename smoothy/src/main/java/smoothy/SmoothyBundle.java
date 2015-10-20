@@ -23,7 +23,7 @@ public class SmoothyBundle {
         bindTarget(activity, bundle);
     }
 
-    public static <T extends Fragment> void bind(T fragment) {
+    public static void bind(Fragment fragment) {
         if (fragment == null) {
             return;
         }
@@ -31,7 +31,7 @@ public class SmoothyBundle {
         bindTarget(fragment, fragment.getArguments());
     }
 
-    public static <T extends android.support.v4.app.Fragment> void bind(T fragment) {
+    public static void bind(android.support.v4.app.Fragment fragment) {
         if (fragment == null) {
             return;
         }
