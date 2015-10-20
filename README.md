@@ -37,6 +37,8 @@ class Example1Activity extends Activity {
 Download
 --------
 
+Download via Gradle:
+
 ```groovy
 buildscript {
   dependencies {
