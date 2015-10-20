@@ -1,0 +1,6 @@
+include ':app'
+include ':smoothy-annotations'
+include ':smoothy-compiler'
+include ':smoothy'
+
+//rootProject.name = 'smoothy-parent'

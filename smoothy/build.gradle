@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+    }
+
+    buildTypes {
+        release {
+            consumerProguardFiles 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile project(':smoothy-annotations')
+    provided deps.androidCompat
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

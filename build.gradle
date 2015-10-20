@@ -1,0 +1,59 @@
+subprojects { project ->
+
+    group = GROUP
+    version = VERSION_NAME
+
+    repositories {
+        mavenCentral()
+    }
+
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath 'com.android.tools.build:gradle:1.3.1'
+            classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        }
+    }
+}
+
+/*
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.1'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+*/
+
+ext {
+    minSdkVersion = 16
+    targetSdkVersion = 23
+    compileSdkVersion = 23
+    buildToolsVersion = '23.0.1'
+    sourceCompatibilityVersion = JavaVersion.VERSION_1_7
+    targetCompatibilityVersion = JavaVersion.VERSION_1_7
+}
+
+ext.deps = [
+        // Android
+        android: 'com.google.android:android:4.1.1.4',
+        androidCompat: 'com.android.support:appcompat-v7:23.0.1',
+
+        // Square
+        javapoet: 'com.squareup:javapoet:1.3.0',
+
+        // Google
+        autoservice: 'com.google.auto.service:auto-service:1.0-rc2',
+]
