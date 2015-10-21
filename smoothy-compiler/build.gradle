@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'checkstyle'
 
 def logger = new com.android.build.gradle.internal.LoggerWrapper(project.logger)
 def sdkHandler = new com.android.build.gradle.internal.SdkHandler(project, logger)
@@ -12,6 +13,12 @@ dependencies {
     compile project(':smoothy-annotations')
     compile deps.autoservice
     compile deps.javapoet
+}
+
+checkstyle {
+    configFile rootProject.file('checkstyle.xml')
+    showViolations true
+    sourceSets = [sourceSets.main]
 }
 
 apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

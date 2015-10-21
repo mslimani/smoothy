@@ -17,7 +17,7 @@ import smoothy.BindExtra;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class Processor extends AbstractProcessor{
+public class Processor extends AbstractProcessor {
 
     private ProcessingEnvironment mProcessingEnvironment;
     private Elements mElementsUtils;

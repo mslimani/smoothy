@@ -10,6 +10,10 @@ import android.os.Bundle;
  */
 public class SmoothyBundle {
 
+    private SmoothyBundle() {
+
+    }
+
     public static <T extends Activity> void bind(T activity) {
         if (activity == null) {
             return;

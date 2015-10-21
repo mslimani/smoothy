@@ -1,11 +1,5 @@
 package smoothy.compiler;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -14,6 +8,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +23,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -47,19 +44,26 @@ public class SmoothyExtraProcessor {
         mElementsUtils = elements;
     }
 
-    private void generateModel(ProcessingEnvironment processingEnvironment, SmoothyExtraInfos extraInfos) throws Exception{
-        boolean isFragment = extraInfos.isFragment(processingEnvironment, mElementsUtils);
-        boolean isActivity = extraInfos.isActivity(processingEnvironment, mElementsUtils);
-        boolean isSupportFragment = extraInfos.isSupportFragment(processingEnvironment, mElementsUtils);
+
+    private void generateModel(ProcessingEnvironment processingEnvironment, SmoothyExtraInfos
+            extraInfos) throws Exception {
         TypeElement typeElement = extraInfos.getTypeElement();
+        TypeHelper typeHelper = new TypeHelper(processingEnvironment);
+
+        boolean isFragment = typeHelper.isFragment(typeElement);
+        boolean isSupportFragment = typeHelper.isSupportFragment(typeElement);
+
+        boolean isActivity = typeHelper.isActivity(typeElement);
+        boolean isService = typeHelper.isService(typeElement);
+
         String packageName = getPackageName(typeElement);
         String className = getClassName(typeElement);
         String modelName = className + SUFFIX_CLS_MODEL;
 
         ClassName buildType;
-        if (isActivity) {
-            buildType = ClassName.get(Intent.class);
-        } else if(isFragment || isSupportFragment) {
+        if (isActivity || isService) {
+            buildType = ClassNameUtils.getIntent();
+        } else if (isFragment || isSupportFragment) {
             buildType = ClassName.get(packageName, className);
         } else {
             buildType = ClassName.get(Void.class);
@@ -80,7 +84,7 @@ public class SmoothyExtraProcessor {
                 );
 
         MethodSpec.Builder constructorParcelBuilder = MethodSpec.constructorBuilder()
-                .addParameter(Parcel.class, "parcel");
+                .addParameter(ClassNameUtils.getParcel(), "parcel");
 
         MethodSpec.Builder parseMethodBuilder = MethodSpec.methodBuilder("parse")
                 .addModifiers(Modifier.PUBLIC)
@@ -89,17 +93,21 @@ public class SmoothyExtraProcessor {
         MethodSpec.Builder buildMethodBuilder = MethodSpec.methodBuilder("build")
                 .returns(buildType)
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(Context.class), "context");
+                .addParameter(ClassNameUtils.getContext(), "context");
 
         if (isFragment || isSupportFragment) {
-            buildMethodBuilder.addStatement("$T bundle = new $T()", Bundle.class, Bundle.class);
-            buildMethodBuilder.addStatement("bundle.putParcelable($L, this)", "SmoothyBundleWrapper.BUNDLE_KEY");
+            ClassName bundleClassName = ClassName.get("android.os", "Bundle");
+            buildMethodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
+            buildMethodBuilder.addStatement("bundle.putParcelable($L, this)",
+                    "SmoothyBundleWrapper.BUNDLE_KEY");
             buildMethodBuilder.addStatement("$L fragment = new $L()", className, className);
             buildMethodBuilder.addStatement("fragment.setArguments(bundle)");
             buildMethodBuilder.addStatement("return fragment");
         } else if (isActivity) {
-            buildMethodBuilder.addStatement("Intent intent = new Intent(context, $L.class)", className);
-            buildMethodBuilder.addStatement("intent.putExtra($L, this)", "SmoothyBundleWrapper.BUNDLE_KEY");
+            buildMethodBuilder.addStatement("Intent intent = new Intent(context, $L.class)",
+                    className);
+            buildMethodBuilder.addStatement("intent.putExtra($L, this)",
+                    "SmoothyBundleWrapper.BUNDLE_KEY");
             buildMethodBuilder.addStatement("return intent");
         } else {
             buildMethodBuilder.addStatement("// pas supporté");
@@ -109,7 +117,7 @@ public class SmoothyExtraProcessor {
 
         MethodSpec.Builder writeToParcelMethodBuilder = MethodSpec.methodBuilder("writeToParcel")
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(Parcel.class, "parcel")
+                .addParameter(ClassNameUtils.getParcel(), "parcel")
                 .addParameter(int.class, "i");
 
         for (SmoothyExtraInfos.SmoothyEtraVariable smoothyEtraVariable : extraInfos.getPropertiesElements()) {
@@ -133,32 +141,45 @@ public class SmoothyExtraProcessor {
 
             parseMethodBuilder.addStatement("target.$L = this.$L", variableName, variableName);
 
-            if (smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, String.class)) {
+            if (typeHelper.isClass(variableElement, String.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeString($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readString()", variableElement);
-            } else if (smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, Integer.class)) {
+            } else if (typeHelper.isClass(variableElement, Integer.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeInt($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readInt()", variableElement);
-            } else if (smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, Long.class)) {
+            } else if (typeHelper.isClass(variableElement, Long.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeLong($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readLong()", variableElement);
-            } else if (smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, Float.class)) {
+            } else if (typeHelper.isClass(variableElement, Float.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeFloat($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readFloat()", variableElement);
-            } else if (smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, Double.class)) {
+            } else if (typeHelper.isClass(variableElement, Double.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeDouble($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readDouble()", variableElement);
-            } else if(smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, List.class)) {
+            } else if (typeHelper.isParcelable(variableElement)) {
+                writeToParcelMethodBuilder.addStatement("parcel.writeParcelable($L, 0)", variableName);
+                constructorParcelBuilder.addStatement("this.$L = parcel.readParcelable($L.class.getClassLoader())",
+                        variableName, getClassName(processingEnvironment.getTypeUtils().asElement(variableElement.asType())));
+            } else if (typeHelper.isClass(variableElement, Serializable.class)) {
+                writeToParcelMethodBuilder.addStatement("parcel.writeSerializable($L)", variableName);
+                constructorParcelBuilder.addStatement("this.$L = ($L) parcel.readSerializable()",
+                        variableElement, ClassName.get(variableElement.asType()));
+            } else if (typeHelper.isListParcelable(variableElement)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeList($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = new $T<>()", variableName, ArrayList.class);
-                constructorParcelBuilder.addStatement("parcel.readList(this.$L, getClass().getClassLoader())");
-            } else if(smoothyEtraVariable.isType(processingEnvironment, mElementsUtils, Parcelable.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeList($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = new $T<>()", variableName, ArrayList.class);
-                constructorParcelBuilder.addStatement("parcel.readList(this.$L, getClass().getClassLoader())");
-            }
+                constructorParcelBuilder.addStatement("this.$L = new $L()", variableElement,
+                        ClassName.get(ArrayList.class));
 
-            // TODO list objet + parcelable
+                if (variableElement.asType() instanceof DeclaredType) {
+                    DeclaredType declaredType = (DeclaredType) variableElement.asType();
+
+                    List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+                    if (!typeArguments.isEmpty()) {
+                        constructorParcelBuilder.addStatement("parcel.readList($L, $L.class.getClassLoader())",
+                                variableElement, ClassName.get(typeArguments.get(0)));
+                    }
+
+                }
+            }
 
         }
 
@@ -175,7 +196,7 @@ public class SmoothyExtraProcessor {
 
         modelBuilder.addField(
                 FieldSpec.builder(
-                        ParameterizedTypeName.get(ClassName.get(Parcelable.Creator.class)
+                        ParameterizedTypeName.get(ClassNameUtils.getParcelableCreator()
                                 , ClassName.get(packageName, modelName)
                         ), "CREATOR")
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
@@ -190,7 +211,6 @@ public class SmoothyExtraProcessor {
                                         .add("}")
                                         .build()
                         ).build());
-
 
 
         JavaFile modelJavaFile = JavaFile.builder(packageName, modelBuilder.build()).build();
