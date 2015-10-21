@@ -3,4 +3,5 @@ include ':smoothy-annotations'
 include ':smoothy-compiler'
 include ':smoothy'
 
+rootProject.name = 'smoothy-parent'
 //rootProject.name = 'smoothy-parent'

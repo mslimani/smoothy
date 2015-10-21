@@ -4,11 +4,13 @@ subprojects { project ->
     version = VERSION_NAME
 
     repositories {
+        jcenter()
         mavenCentral()
     }
 
     buildscript {
         repositories {
+            jcenter()
             mavenCentral()
         }
         dependencies {
