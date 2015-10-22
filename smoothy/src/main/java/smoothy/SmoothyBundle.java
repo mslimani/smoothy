@@ -2,6 +2,7 @@ package smoothy;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -12,6 +13,14 @@ public class SmoothyBundle {
 
     private SmoothyBundle() {
 
+    }
+
+    public static <T extends Service> void bind(T service, Intent intent) {
+        Bundle bundle = null;
+        if (intent != null) {
+            bundle = intent.getExtras();
+        }
+        bindTarget(service, bundle);
     }
 
     public static <T extends Activity> void bind(T activity) {

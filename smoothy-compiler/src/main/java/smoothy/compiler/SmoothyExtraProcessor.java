@@ -104,7 +104,7 @@ public class SmoothyExtraProcessor {
             buildMethodBuilder.addStatement("$L fragment = new $L()", className, className);
             buildMethodBuilder.addStatement("fragment.setArguments(bundle)");
             buildMethodBuilder.addStatement("return fragment");
-        } else if (isActivity) {
+        } else if (isActivity || isService) {
             buildMethodBuilder.addStatement("Intent intent = new Intent(context, $L.class)",
                     className);
             buildMethodBuilder.addStatement("intent.putExtra($L, this)",

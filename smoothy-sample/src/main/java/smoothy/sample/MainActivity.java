@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import smoothy.SmoothyBundle;
+import smoothy.sample.services.HomeServiceBuilder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
                 .build(this);
 
         startActivity(detailIntent);
+
+        Intent homeService = new HomeServiceBuilder()
+                .name("epokdeopkdopk")
+                .build(this);
+        startService(homeService);
     }
 
     @Override

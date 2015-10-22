@@ -20,6 +20,7 @@
             android:name=".DetailActivity"
             android:label="@string/title_activity_detail" >
         </activity>
+        <service android:name=".services.HomeService" />
     </application>
 
 </manifest>
