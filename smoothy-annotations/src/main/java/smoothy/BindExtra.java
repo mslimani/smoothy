@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface BindExtra {
 
-    boolean optional() default false; // not implemented
-    String defaultValue() default ""; // not implemented
+    //boolean optional() default false; // not implemented
+    //String defaultValue() default ""; // not implemented
 
 }
