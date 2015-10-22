@@ -70,6 +70,7 @@ public class SmoothyExtraProcessor {
         }
 
         TypeSpec.Builder modelBuilder = TypeSpec.classBuilder(modelName)
+                .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(
                         ParameterizedTypeName.get(
                                 ClassName.get("smoothy", "SmoothyBundleWrapper"),
