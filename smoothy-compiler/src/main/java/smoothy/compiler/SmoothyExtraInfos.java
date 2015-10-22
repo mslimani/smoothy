@@ -6,6 +6,8 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
+import smoothy.BindExtra;
+
 /**
  * Created by mehdi on 19/10/2015.
  */
@@ -31,6 +33,18 @@ public class SmoothyExtraInfos {
     public void addVariable(VariableElement variableElement) {
         mPropertiesElements.add(new SmoothyEtraVariable(variableElement));
     }
+
+    private List<SmoothyEtraVariable> getVariables(boolean optional) {
+        List<SmoothyEtraVariable> variables = new ArrayList<>();
+        for (SmoothyEtraVariable propertiesElement : mPropertiesElements) {
+            if (propertiesElement.isOptional() == optional) {
+                variables.add(propertiesElement);
+            }
+        }
+        return variables;
+    }
+
+
 
     @Override
     public String toString() {
@@ -80,6 +94,10 @@ public class SmoothyExtraInfos {
                 }
             }
             return builder.toString();
+        }
+
+        public boolean isOptional() {
+            return mVariableElement.getAnnotation(BindExtra.class).optional();
         }
 
     }

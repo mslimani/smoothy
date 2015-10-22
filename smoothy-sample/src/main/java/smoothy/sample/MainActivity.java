@@ -2,17 +2,16 @@ package smoothy.sample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.OnClick;
 import smoothy.SmoothyBundle;
+import smoothy.sample.models.Item;
 import smoothy.sample.services.HomeServiceBuilder;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,47 +19,47 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         SmoothyBundle.bind(this);
 
+        DetailFragment detailFragment = new DetailFragmentBuilder()
+                .name("Mehdi")
+                .surname("Slimani")
+                .build(this);
 
-        List<Item> items = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            Item item = new Item();
-            item.a = "i " + i;
-            item.b = "j " + (i + 10);
-            items.add(item);
-        }
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, detailFragment)
+                .commit();
+    }
+
+    //region onClick
+
+    @OnClick(R.id.detail)
+    void onDetailClick() {
+        List<Item> items = getItems();
         Intent detailIntent = new DetailActivityBuilder()
                 .title("Smoothy Title")
                 .count(34)
                 .items(items)
                 .build(this);
-
         startActivity(detailIntent);
+    }
 
+    @OnClick(R.id.service)
+    void onServiceClick() {
         Intent homeService = new HomeServiceBuilder()
-                .name("epokdeopkdopk")
+                .name("One title")
                 .build(this);
         startService(homeService);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    //endregion onClick
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    private List<Item> getItems() {
+        List<Item> items = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            Item item = new Item();
+            item.a = "i " + i;
+            item.b = "j " + (i + 10);
+            items.add(item);
         }
-
-        return super.onOptionsItemSelected(item);
+        return items;
     }
 }

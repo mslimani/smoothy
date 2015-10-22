@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import smoothy.BindExtra;
 import smoothy.SmoothyBundle;
@@ -19,6 +20,10 @@ public class HomeService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         SmoothyBundle.bind(this, intent);
+
+        Toast.makeText(getApplicationContext(), "Start service [bundle name = '" + mName + "']",
+                Toast.LENGTH_LONG).show();
+
         return START_STICKY;
     }
 

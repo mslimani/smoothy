@@ -1,4 +1,4 @@
-package smoothy.sample;
+package smoothy.sample.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -40,4 +40,9 @@ public class Item implements Parcelable {
             return new Item[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return "[ a = " + a + ", b = " + b + "]";
+    }
 }

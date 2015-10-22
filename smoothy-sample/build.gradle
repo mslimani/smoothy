@@ -26,6 +26,6 @@ dependencies {
     compile deps.androidCompat
     compile project(':smoothy')
     apt project(':smoothy-compiler')
-    //compile 'com.github.mslimani:smoothy:1.0.0'
-    //apt 'com.github.mslimani:smoothy-compiler:1.0.0'
+
+    compile 'com.jakewharton:butterknife:7.0.1'
 }

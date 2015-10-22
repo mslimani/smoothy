@@ -69,6 +69,7 @@ public class SmoothyExtraProcessor {
             buildType = ClassName.get(Void.class);
         }
 
+
         TypeSpec.Builder modelBuilder = TypeSpec.classBuilder(modelName)
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(
