@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.OnClick;
@@ -33,12 +34,24 @@ public class MainActivity extends BaseActivity {
 
     @OnClick(R.id.detail)
     void onDetailClick() {
+        // create mock array
+        String[] titles = new String[20];
+        int[] ints = new int[20];
+
+        for (int i = 0; i < 20; i++) {
+            titles[i] = "title :: " + i;
+            ints[i] = i;
+        }
+
         List<Item> items = getItems();
-        Intent detailIntent = new DetailActivityBuilder()
-                .title("Smoothy Title")
+        Intent detailIntent = new DetailActivityBuilder(23, "Smoothy title")
                 .count(34)
+                .ints(ints)
                 .items(items)
+                .titlesArray(titles)
+                .titles(new ArrayList<>(Arrays.asList(titles)))
                 .build(this);
+
         startActivity(detailIntent);
     }
 

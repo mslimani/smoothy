@@ -14,7 +14,7 @@ import smoothy.SmoothyBundle;
  */
 public class HomeService extends Service {
 
-    @BindExtra
+    @BindExtra(optional = true)
     String mName;
 
     @Override

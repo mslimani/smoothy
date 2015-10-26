@@ -34,7 +34,7 @@ public class SmoothyExtraInfos {
         mPropertiesElements.add(new SmoothyEtraVariable(variableElement));
     }
 
-    private List<SmoothyEtraVariable> getVariables(boolean optional) {
+    public List<SmoothyEtraVariable> getVariables(boolean optional) {
         List<SmoothyEtraVariable> variables = new ArrayList<>();
         for (SmoothyEtraVariable propertiesElement : mPropertiesElements) {
             if (propertiesElement.isOptional() == optional) {
@@ -79,7 +79,12 @@ public class SmoothyExtraInfos {
         }
 
         public String getSetterName() {
-            String name = getVariableName();
+            String name = mVariableElement.getAnnotation(BindExtra.class)
+                    .value();
+            if (name == null || name.trim().isEmpty()) {
+                name = getVariableName();
+            }
+
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < name.length(); i++) {
                 char character = name.charAt(i);
@@ -99,6 +104,7 @@ public class SmoothyExtraInfos {
         public boolean isOptional() {
             return mVariableElement.getAnnotation(BindExtra.class).optional();
         }
+
 
     }
 }

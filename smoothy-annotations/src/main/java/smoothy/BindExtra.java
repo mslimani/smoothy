@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 public @interface BindExtra {
 
     boolean optional() default false;
+    String value() default "";
     //String defaultValue() default ""; // not implemented
 
 }

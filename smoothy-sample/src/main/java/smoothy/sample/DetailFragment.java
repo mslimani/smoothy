@@ -8,8 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import smoothy.BindExtra;
@@ -20,9 +18,9 @@ import smoothy.SmoothyBundle;
  */
 public class DetailFragment extends Fragment {
 
-    @BindExtra
+    @BindExtra(optional = true)
     String mName;
-    @BindExtra
+    @BindExtra(optional = true)
     String mSurname;
 
     @Bind(R.id.detail_title)

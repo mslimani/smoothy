@@ -6,6 +6,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.Serializable;
@@ -70,6 +71,20 @@ public class SmoothyExtraProcessor {
         }
 
 
+        List<SmoothyExtraInfos.SmoothyEtraVariable> requiredVariables = extraInfos.getVariables(false);
+
+        MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC);
+
+        for (SmoothyExtraInfos.SmoothyEtraVariable requiredVariable : requiredVariables) {
+            VariableElement variableElement = requiredVariable.getVariableElement();
+            TypeName parameterTypeName = ClassName.get(variableElement.asType());
+            String variableName = requiredVariable.getVariableName();
+            String parameterName = requiredVariable.getSetterName();
+            constructorBuilder.addParameter(parameterTypeName, parameterName);
+            constructorBuilder.addStatement("this.$L = $L", variableName, parameterName);
+        }
+
         TypeSpec.Builder modelBuilder = TypeSpec.classBuilder(modelName)
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(
@@ -80,9 +95,7 @@ public class SmoothyExtraProcessor {
                         )
                 )
                 .addMethod(
-                        MethodSpec.constructorBuilder()
-                                .addModifiers(Modifier.PUBLIC)
-                                .build()
+                        constructorBuilder.build()
                 );
 
         MethodSpec.Builder constructorParcelBuilder = MethodSpec.constructorBuilder()
@@ -133,39 +146,56 @@ public class SmoothyExtraProcessor {
             );
 
 
-            modelBuilder.addMethod(MethodSpec.methodBuilder(setterName)
-                    .addModifiers(Modifier.PUBLIC)
-                    .returns(ClassName.bestGuess(modelName))
-                    .addParameter(ClassName.get(variableElement.asType()), setterName)
-                    .addStatement("this.$L = $L", variableName, setterName)
-                    .addStatement("return this")
-                    .build());
+            if (smoothyEtraVariable.isOptional()) {
+                modelBuilder.addMethod(MethodSpec.methodBuilder(setterName)
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(ClassName.bestGuess(modelName))
+                        .addParameter(ClassName.get(variableElement.asType()), setterName)
+                        .addStatement("this.$L = $L", variableName, setterName)
+                        .addStatement("return this")
+                        .build());
+            }
+
 
             parseMethodBuilder.addStatement("target.$L = this.$L", variableName, variableName);
 
-            if (typeHelper.isClass(variableElement, String.class)) {
+            boolean isPrimitive = typeHelper.isPrimitive(variableElement);
+
+            if (isPrimitive) {
+                if (typeHelper.isClass(variableElement, Integer.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeInt($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.readInt()", variableElement);
+                } else if (typeHelper.isClass(variableElement, Long.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeLong($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.readLong()", variableElement);
+                } else if (typeHelper.isClass(variableElement, Float.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeFloat($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.readFloat()", variableElement);
+                } else if (typeHelper.isClass(variableElement, Double.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeDouble($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.readDouble()", variableElement);
+                } else if (typeHelper.isClass(variableElement, Character.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeInt($L)",
+                            variableName);
+                    constructorParcelBuilder.addStatement("this.$L = (char) parcel.readInt()",
+                            variableElement);
+                } else if (typeHelper.isClass(variableElement, Byte.class)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeByte($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.readByte()", variableElement);
+                }
+            } else if (typeHelper.isClass(variableElement, String.class)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeString($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readString()", variableElement);
-            } else if (typeHelper.isClass(variableElement, Integer.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeInt($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = parcel.readInt()", variableElement);
-            } else if (typeHelper.isClass(variableElement, Long.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeLong($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = parcel.readLong()", variableElement);
-            } else if (typeHelper.isClass(variableElement, Float.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeFloat($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = parcel.readFloat()", variableElement);
-            } else if (typeHelper.isClass(variableElement, Double.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeDouble($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = parcel.readDouble()", variableElement);
             } else if (typeHelper.isParcelable(variableElement)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeParcelable($L, 0)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = parcel.readParcelable($L.class.getClassLoader())",
                         variableName, getClassName(processingEnvironment.getTypeUtils().asElement(variableElement.asType())));
-            } else if (typeHelper.isClass(variableElement, Serializable.class)) {
-                writeToParcelMethodBuilder.addStatement("parcel.writeSerializable($L)", variableName);
-                constructorParcelBuilder.addStatement("this.$L = ($L) parcel.readSerializable()",
-                        variableElement, ClassName.get(variableElement.asType()));
+            } else if (typeHelper.isStringList(variableElement)) {
+                //writeStringList
+                writeToParcelMethodBuilder.addStatement("parcel.writeStringList($L)", variableName);
+                constructorParcelBuilder.addStatement("this.$L = parcel.createStringArrayList()",
+                        variableName);
+
             } else if (typeHelper.isListParcelable(variableElement)) {
                 writeToParcelMethodBuilder.addStatement("parcel.writeList($L)", variableName);
                 constructorParcelBuilder.addStatement("this.$L = new $L()", variableElement,
@@ -181,7 +211,44 @@ public class SmoothyExtraProcessor {
                     }
 
                 }
+            } else if (typeHelper.isArray(variableElement)) {
+                String type = typeHelper.getArrayType(variableElement);
+                log(processingEnvironment, "Array = " + type);
+                String[] arrays = new String[]{
+                        "Boolean", "Byte", "Char", "Double", "Float", "Int", "Long"
+                };
+
+                if (String.class.getCanonicalName().equals(type)) {
+                    writeToParcelMethodBuilder.addStatement("parcel.writeStringArray($L)", variableName);
+                    constructorParcelBuilder.addStatement("this.$L = parcel.createStringArray()",
+                            variableElement);
+                } else {
+                    boolean hasFound = false;
+                    for (String typePrimitiveArray : arrays) {
+                        if (typePrimitiveArray.toUpperCase().equals(type.toUpperCase())) {
+                            writeToParcelMethodBuilder.addStatement("parcel.write$LArray($L)",
+                                    typePrimitiveArray, variableName);
+                            constructorParcelBuilder.addStatement("this.$L = parcel.create$LArray()",
+                                    variableElement, typePrimitiveArray);
+
+                            hasFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasFound) {
+                        writeToParcelMethodBuilder.addStatement("parcel.writeArray($L)", variableName);
+                        constructorParcelBuilder.addStatement("this.$L = ($L[]) parcel.readArray($L.class.getClassLoader())",
+                                variableElement, type, type);
+                    }
+                }
+
+            } else if (typeHelper.isClass(variableElement, Serializable.class)) {
+                writeToParcelMethodBuilder.addStatement("parcel.writeSerializable($L)", variableName);
+                constructorParcelBuilder.addStatement("this.$L = ($L) parcel.readSerializable()",
+                        variableElement, ClassName.get(variableElement.asType()));
             }
+
 
         }
 

@@ -3,6 +3,7 @@ package smoothy.compiler;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -50,9 +51,39 @@ public class TypeHelper {
         return mTypes.isAssignable(element.asType(), mirror);
     }
 
+    public boolean isPrimitive(Element element) {
+        String type = element.asType().toString();
+        switch (type) {
+            case "int":
+            case "long":
+            case "char":
+            case "float":
+            case "double":
+            case "byte":
+                return true;
+            default: return false;
+        }
+    }
+
+    public boolean isArray(Element element) {
+        return element.asType().toString().endsWith("[]");
+    }
+
+    public String getArrayType(Element element) {
+        String type = element.asType().toString();
+        return type.substring(0, type.length() - 2);
+    }
+
+    public boolean isStringList(Element element) {
+        TypeElement arrayList = mProcessingEnvironment.getElementUtils().getTypeElement("java.util.ArrayList");
+        TypeMirror elType = mProcessingEnvironment.getElementUtils().getTypeElement(String.class.getName())
+                .asType();
+        DeclaredType declaredType = mProcessingEnvironment.getTypeUtils().getDeclaredType(arrayList, elType);
+        return mTypes.isAssignable(element.asType(), declaredType);
+    }
+
     private boolean isType(Element element, String cls) {
-        return mTypes.isAssignable(element.asType(), mElements.getTypeElement(cls)
-                .asType());
+        return mTypes.isAssignable(element.asType(), mElements.getTypeElement(cls).asType());
     }
 
 
