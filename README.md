@@ -41,6 +41,13 @@ class FirstActivity extends Activity {
 }
 ```
 
+Next Steps for v1.0.5
+--------
+- Add optional fields
+- Add default value
+- Add @BindExtra for others types : SparseArray, List<String>, BooleanArray, ByteArray, CharArray, DoubleArray, IntArray, StringArray, IBinder
+
+
 Download
 --------
 
