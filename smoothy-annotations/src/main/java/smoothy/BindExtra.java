@@ -9,8 +9,24 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface BindExtra {
 
+    /**
+     * @return true field in constructor builder else in setter name
+     */
     boolean optional() default false;
-    String value() default "";
-    //String defaultValue() default ""; // not implemented
 
+    /**
+     * <blockquote><pre>
+     * {@code
+     *     class MyActivity extends Activity {
+     *         @BindExtra(value = "intValue", optional = true) public int mInt;
+     *     }
+     *
+     *     Intent intent = MyActivityBuilder()
+     *                          .intValue(2)
+     *                          .build();
+     * }
+     * </pre></blockquote>
+     * @return default name for field in builder and setter name
+     */
+    String value() default "";
 }
